@@ -1,0 +1,179 @@
+# !!!THE EXECUTION OF THE SCRIPT HAS TO BE RUN IN EXACT ORDER!!!
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+%matplotlib inline
+
+#A1& A2 :Download the data set data.csv from the Resources tab & Import the data as a pandas DataFrame.
+data = pd.read_csv('data.csv')
+
+#A3: Check the number of observations.
+data.count()
+
+#A4: Obtain the column headings.
+data.head()
+
+#A5: Check the data type for each column.
+data.dtypes
+
+#A6: Check if there are any missing values.
+data.apply(lambda x: sum(x.isnull()))
+
+#A7:If necessary remove any observations to ensure that there are no missing values 
+#   and the values in each column are of the same data type.
+data.dropna(inplace = True)
+data['Happiness Rank'] = data['Happiness Rank'].astype(float)
+
+#A8: Obtain the mean, minimum and maximum value for each column containing numerical data.
+data.describe()
+# data.mean()
+# data.min()
+# data.max()
+
+#A9: List the 10 happiest countries.
+data = data.sort_values(by = 'Happiness Rank', ascending = True)
+data.head(10)
+
+#A10: List the 10 least happy countries.
+data.tail(10)
+
+#B1 :Use the column 'Region' to create a separate DataFrame containing the data points from each of the six regions
+df = data.copy()
+df.set_index('Region', inplace = True)
+
+#B1: Compute the mean happiness score for each region and rank the regions from most happy to least happy.
+df2 = df.groupby('Region').mean()
+df2.sort_values(by = 'Happiness Score', ascending = False)
+
+#B2: Compute the number of countries in each region that have a happiness score above 6.0.
+filter = df['Happiness Score'] > 6
+df[filter].groupby('Region').size() 
+
+#B3 Compute the difference between the maximum and minimum happiness score for each region. 
+#   Which region has the largest range of happiness scores?
+min = df['Happiness Score'].groupby('Region').min()
+max = df['Happiness Score'].groupby('Region').max()
+difference = max - min
+print(difference)
+difference.sort_values(ascending = False)
+print('\nRegion with largest range of happiness score:')
+difference.head(1)
+
+#C1: Obtain a horizontal bar plot of the Happiness Score of the top 10 countries
+data = data.sort_values(by = 'Happiness Score', ascending = False)
+plotdata = data[0:10]
+sns.barplot(plotdata['Happiness Score'], plotdata['Country'], orient = 'h')
+plt.title('Top 10 Countries')
+plt.xlabel('Happiness Score')
+plt.ylabel('Country')
+plt.xlim(0,8)
+
+#C2: Modify the bar chart you obtained in step 1 to turn into a stacked bar chart
+data = data.sort_values(by = 'Happiness Score', ascending = False)
+plotdata = data[0:10]
+y = plotdata['Country']
+e = plotdata['Economy']
+f = plotdata['Family']
+h = plotdata['Health']
+fr = plotdata['Freedom']
+g = plotdata['Generosity']
+c = plotdata['Corruption']
+d = plotdata['Dystopia']
+sns.barplot(e, y, color='blue', orient = 'h', label = 'Economy')
+sns.barplot(f, y, color='black', left = e, label = 'Family')
+sns.barplot(h, y, color='red', left = e+f, label = 'Health')
+sns.barplot(fr, y, color='green', left = e+f+h, label = 'Freedom')
+sns.barplot(g, y, color='yellow', left = e+f+h+fr, label = 'Generosity')
+sns.barplot(c, y, color='brown', left = e+f+h+fr+g, label = 'Corruption')
+sns.barplot(d,y, color='purple', left = e+f+h+fr+g+c, label = 'Dystopia')
+plt.title('Top 10 Countries')
+plt.xlabel('Happiness Score')
+plt.ylabel('Country')
+plt.xlim(0,8)
+plt.legend(loc='lower right')
+
+#C3: Obtain the same stacked horizontal bar chart as in step 2 but this time instead of 
+#    the top 10 countries consider all countries from the region Africa.
+filter = data['Region'] == 'Africa'
+data = data.sort_values(by = 'Happiness Score', ascending = False)
+plotdata = data[filter][0:10]
+y = plotdata['Country']
+e = plotdata['Economy']
+f = plotdata['Family']
+h = plotdata['Health']
+fr = plotdata['Freedom']
+g = plotdata['Generosity']
+c = plotdata['Corruption']
+d = plotdata['Dystopia']
+sns.barplot(e, y, color='blue', orient = 'h', label = 'Economy')
+sns.barplot(f, y, color='black', left = e, label = 'Family')
+sns.barplot(h, y, color='red', left = e+f, label = 'Health')
+sns.barplot(fr, y, color='green', left = e+f+h, label = 'Freedom')
+sns.barplot(g, y, color='yellow', left = e+f+h+fr, label = 'Generosity')
+sns.barplot(c, y, color='brown', left = e+f+h+fr+g, label = 'Corruption')
+sns.barplot(d,y, color='purple', left = e+f+h+fr+g+c, label = 'Dystopia')
+plt.title('Top 10 Countries')
+plt.xlabel('Happiness Score')
+plt.ylabel('Country')
+plt.xlim(0,8)
+plt.legend(loc='lower right')
+
+#D1: Obtain a histogram of the Job Satisfaction using the categories
+hist = data['Job Satisfaction'].plot.hist(bins = [40,50,60,70,80,90,100], color='blue', edgecolor = "black")
+hist.set_xlabel('% Job Satisfaction')
+hist.set_title('Histogram of Job Satisfaction')
+
+#E1: Obtain scatter plots
+yname = list(data)
+plt.figure(figsize=(20,10))
+x = data['Happiness Score']
+for i in range(3,11):
+    plt.subplot(3,3,i-2)
+    y = data.iloc[:,i]
+    plt.ylabel(yname[i])
+    plt.xlabel('Happiness Score')
+    plt.scatter(x ,y)
+    
+#F1: Obtain the correlation between the Happiness Score and each of the other variables.
+#    Which variable has the highest correlation with the Happiness Score?
+yname = list(data)
+x = data['Happiness Score']
+result = np.empty((0,8))
+for i in range(3,11):
+    y = data.iloc[:,i]
+    cc = np.corrcoef(x,y)[1,0]
+    r2 = cc**2
+    result = np.append(result, r2)
+var = np.reshape(yname, (12,1))
+var = var[3:11,:]
+result = np.reshape(result, (8,1))
+fin = np.concatenate((var,result), axis = 1)
+print('Variable      rsquare')
+print(fin)
+print('\nHighest correlation(r2):')
+print(fin[0])
+
+#G1: Compute the probability that randomly selected country with Happiness score over 6.0 is from Western Europe. 
+filter_score = data['Happiness Score'] > 6 
+filter_region = data['Region'] == 'Western Europe'
+df_score = data[filter_score]
+df_region = data[filter_region]
+df_score_region = data[filter_score][filter_region]
+sr = len(df_score_region) #WE and >6
+s = len(df_score) #regions >6
+prob = sr / s * 100
+print('Probability [%]:')
+print(prob)
+
+#H1:
+data.dropna(inplace = True)
+data['Happiness Rank'] = data['Happiness Rank'].astype(float)
+for x in data['Region'].unique():
+    data[x] = (data['Region']==x).astype(int)
+data.drop(['Happiness Rank', 'Happiness Score', 'Economy', 'Family',
+           'Freedom', 'Generosity', 'Corruption', 'Dystopia',
+           'Job Satisfaction', 'Region', 'Health'], axis = 1, inplace = True)
+data
+
